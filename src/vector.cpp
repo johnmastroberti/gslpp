@@ -1,17 +1,22 @@
 #include "vector.hpp"
 #include <cassert>
+#include <algorithm>
 
 namespace gsl {
 
   // {{{  Special member functions
-  Vector::Vector() : Vector{0} {}
+  Vector::Vector() : Vector( 0 ) {}
   Vector::Vector(std::size_t n) : m_vec{gsl_vector_calloc(n)} {}
   Vector::Vector(std::size_t n, double x) : m_vec{gsl_vector_calloc(n)} {
     if (x != 0.0)
       set_all(x);
   }
 
-  Vector::Vector(const Vector& o) : Vector{o.size()} {
+  Vector::Vector(std::initializer_list<double> init) : Vector( init.size() ) {
+    std::copy(init.begin(), init.end(), this->begin());
+  }
+
+  Vector::Vector(const Vector& o) : Vector( o.size() ) {
     gsl_vector_memcpy(m_vec, o.m_vec);
   }
   Vector& Vector::operator=(const Vector& o) {
@@ -33,6 +38,29 @@ namespace gsl {
 
   Vector::~Vector() {
     gsl_vector_free(m_vec);
+  }
+
+  // }}}
+
+  // {{{ Iterators
+
+  VectorIterator      Vector::begin() {
+    return {m_vec->data, m_vec->stride};
+  }
+  ConstVectorIterator Vector::begin() const {
+    return {m_vec->data, m_vec->stride};
+  }
+  ConstVectorIterator Vector::cbegin() const {
+    return {m_vec->data, m_vec->stride};
+  }
+  VectorIterator      Vector::end() {
+    return {m_vec->data + m_vec->size * m_vec->stride, 1};
+  }
+  ConstVectorIterator Vector::end() const {
+    return {m_vec->data + m_vec->size * m_vec->stride, 1};
+  }
+  ConstVectorIterator Vector::cend() const {
+    return {m_vec->data + m_vec->size * m_vec->stride, 1};
   }
 
   // }}}
